@@ -2,35 +2,31 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 )
 
-var NOT_ALLOWED_CHARACTERS = map[string]bool{"a": true, "e": true, "f": true, "l": true, "r": true, "s": true, "t": true, "u": true}
-var NOT_ALLOWED_STRING = "aeflrstu"
+var variableRegex = regexp.MustCompile(`\b[a-zA-Z0-9_]+\b`)
 
 const CORRECT_USAGE = "Correct usage: ./satverifier.exe [expression] [solution]"
-const VARIABLE_NAMES_NOT_ALLOWED = "Variable names cannot contain the following letters: a, e, f, l, r, s, t, u"
 
 // Returns the boolean expression with the assigned values.
-// Variable names cannot contain the following letters: a, e, f, l, r, s, t, u
 // Runtime: O(N^2)
 func assignVariables(boolExpression string, solution map[string]string) (string, error) {
-	// iterate over the variables
-	for k := range solution {
 
-		// check if character is allowed
-		if strings.Contains(NOT_ALLOWED_STRING, k) {
-			return "", errors.New("empty name")
+	modifiedExpression := variableRegex.ReplaceAllStringFunc(boolExpression, func(match string) string {
+		// replaces the variable name with its value, if it exists in the solution
+		value, exists := solution[match]
+		if exists {
+			return value
 		}
 
-		// replace the current variables name with its value
-		boolExpression = strings.ReplaceAll(boolExpression, k, string(solution[k]))
-	}
+		// leaves unchanged, if variable doesn't exist in the solution
+		return match
+	})
 
-	return boolExpression, nil
+	return modifiedExpression, nil
 }
 
 func main() {
@@ -52,7 +48,7 @@ func main() {
 
 	assignedExpression, err := assignVariables(expression, solution)
 	if err != nil {
-		fmt.Println(VARIABLE_NAMES_NOT_ALLOWED)
+		fmt.Println(err)
 		return
 	}
 

@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println(true && (false && !true || true))
+	fmt.Println(true && ((true) && !true || (true)))
 }
